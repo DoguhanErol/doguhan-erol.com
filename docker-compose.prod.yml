@@ -1,6 +1,7 @@
-# Same VPS as Qrivo. Do not publish 80/443 here.
-# Qrivo's Caddy already owns those ports. This file only joins the shared
-# Docker network and gives the app and MinIO stable names.
+# 80 ve 443 bu dosyada yayınlanmaz. O portlar makinede zaten dinleniyor.
+# app ve minio web-edge ağına compose ile girmez: servis adları "app" ve "minio"
+# Qrivo Caddy'sinin DNS adlarıyla çakışır. scripts/publish-host.sh konteyner
+# adıyla bağlar.
 services:
   app:
     container_name: doguhan-portfolio-app
@@ -13,21 +14,15 @@ services:
       NEXT_PUBLIC_ROOT_DOMAIN: ${NEXT_PUBLIC_ROOT_DOMAIN}
       MINIO_PUBLIC_URL: ${NEXT_PUBLIC_MINIO_PUBLIC_URL}
       NEXT_PUBLIC_MINIO_PUBLIC_URL: ${NEXT_PUBLIC_MINIO_PUBLIC_URL}
-    networks:
-      - default
-      - web-edge
 
   db:
     ports: []
 
   minio:
     container_name: doguhan-portfolio-minio
-    networks:
-      - default
-      - web-edge
 
-  # Only for a machine where nothing else listens on 80/443.
-  # scripts/vps.sh does not enable this profile.
+  # Yalnızca 80/443 boş olan bir makinede: --profile standalone
+  # Paylaşılan VPS'te scripts/vps.sh bu profili açmaz.
   caddy:
     profiles: ["standalone"]
     image: caddy:2-alpine
@@ -45,11 +40,6 @@ services:
     depends_on:
       - app
       - minio
-
-networks:
-  web-edge:
-    external: true
-    name: web-edge
 
 volumes:
   caddy_data:

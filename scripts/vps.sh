@@ -6,7 +6,6 @@ cd "$(dirname "$0")/.."
 source scripts/compose.sh
 
 COMPOSE_FILES="-f docker-compose.yml -f docker-compose.prod.yml"
-# Qrivo ile aynı makinede ayrı volume ve ağ adı.
 export COMPOSE_PROJECT_NAME=doguhan-portfolio
 
 if [[ ! -f .env ]]; then
@@ -50,14 +49,7 @@ if [[ "${SEED_ADMIN_PASSWORD:-}" == *"change-me"* ]] || [[ ${#SEED_ADMIN_PASSWOR
   exit 1
 fi
 
-if [[ "$COMPOSE" == podman* ]]; then
-  podman network exists web-edge || podman network create web-edge
-else
-  docker network inspect web-edge >/dev/null 2>&1 || docker network create web-edge
-fi
-
 echo "→ VPS deploy başlıyor (${NEXT_PUBLIC_ROOT_DOMAIN}, $COMPOSE)..."
-# Önce DB, sonra şema; app yeni kolonları SELECT etmeden önce db push bitsin.
 # shellcheck disable=SC2086
 compose $COMPOSE_FILES up -d db minio
 
@@ -73,12 +65,13 @@ echo "→ MinIO bucket hazırlanıyor..."
 # shellcheck disable=SC2086
 compose $COMPOSE_FILES --profile init run --rm minio-init
 
-echo "→ Qrivo Caddy'sine domain bağlanıyor..."
-if bash scripts/attach-edge.sh; then
-  echo "✓ https://${NEXT_PUBLIC_ROOT_DOMAIN} Caddy tarafında açık"
+echo "→ ${NEXT_PUBLIC_ROOT_DOMAIN} mevcut 443 kapısına bağlanıyor..."
+if bash scripts/publish-host.sh; then
+  echo "✓ https://${NEXT_PUBLIC_ROOT_DOMAIN}"
 else
-  echo "Uygulama ayakta, domain henüz Caddy'ye yazılmadı."
-  echo "DNS bu sunucuyu gösterince tekrar: bash scripts/attach-edge.sh"
+  echo "Uygulama ayakta. Alan adı henüz kapıya yazılmadı. Qrivo konteynerleri bu betikte durdurulmaz."
+  echo "Tekrar: bash scripts/publish-host.sh"
+  exit 1
 fi
 echo "  Admin:  https://${NEXT_PUBLIC_ROOT_DOMAIN}/admin"
 echo "  Giriş:  ${SEED_ADMIN_USERNAME:-doguhan} veya ${SEED_ADMIN_EMAIL:-e-posta}"

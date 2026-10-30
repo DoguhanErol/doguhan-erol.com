@@ -97,8 +97,8 @@ Yetenek ikonları sırayla `Globe`, `QrCode`, `BookOpen`, `Box`, `Languages`. S�
 
 ## Yapma
 
-- Qrivo’nun veritabanına, volume’una, ağına veya Caddy sürecine dokunma.
-- Bu projenin üretim Caddy’sini, Qrivo ayaktayken 80 ve 443 yayınlayacak şekilde başlatma. İkisi de bu portları ister. Ayrıntı aşağıdaki VPS bölümünde.
+- Qrivo deposunu, veritabanını, volume’unu veya konteynerini değiştirme. `docker stop`, `docker rm` veya Qrivo compose’u bu işin parçası değil.
+- Bu projenin Caddy’sini paylaşılan VPS’te 80 veya 443’e bağlama. `scripts/vps.sh` `standalone` profilini açmaz. İkinci bir kapı o portları alamaz.
 - `.env` içindeki gerçek şifreleri commit etme. `.env` ignore edilir. `.env.production.example` yer tutucudur.
 - Yönetici şifresini seed ile “düzeltme”. Seed var olan hesabı bilinçli olarak atlar.
 - WhatsApp numarası, Telegram kullanıcı adı, müşteri hikâyesi, yayınlanmış makale veya arama sonucu uydurma.
@@ -144,14 +144,12 @@ Yayında, ilk `init-db` çalışmadan önce sunucu `.env` dosyasında `SEED_ADMI
 
 Giriş kullanıcı adı veya e-posta ile olur. Büyük-küçük harf duyarsızdır.
 
-## Aynı VPS, Qrivo dururken
+## Aynı VPS
 
-Qrivo’nun Caddy’si 80 ve 443’ü tutar. Bu projenin `docker-compose.prod.yml` dosyası o portları açmaz ve kendi Caddy’sini başlatmaz. `scripts/vps.sh` compose proje adını `doguhan-portfolio` yapar, `web-edge` ağını yoksa oluşturur, veritabanı ile MinIO’yu ayrı volume’da kaldırır.
+Qrivo aynı makinede durmaya engel değil. İki compose ayrı. Veritabanı `portfolio`, bucket `portfolio`. Konteynerler `doguhan-portfolio-app` ve `doguhan-portfolio-minio`. Qrivo’nun veritabanı `qrmenu`.
 
-Uygulama konteyneri `doguhan-portfolio-app`, MinIO konteyneri `doguhan-portfolio-minio`. İkisi `web-edge` ağındadır. Qrivo veritabanı `qrmenu`, bu proje `portfolio`. Bucket adı `portfolio`.
+`scripts/vps.sh` yalnız bu compose’u kaldırır ve 80/443 yayınlamaz. Ardından `scripts/publish-host.sh` çalışır. O betik 443’ü dinleyen ve Caddyfile’ında `caddy-ask` geçen tek konteyneri bulur. Onu durdurmaz ve eski ağından koparmaz. `web-edge` ağına yalnız konteyner adıyla bağlar. Bu projeyi compose servis adı `app` veya `minio` ile o ağa koyma; Qrivo Caddy’si bu kısa adlarla kendi uygulamasına ve MinIO’suna gider.
 
-`scripts/vps.sh` uygulamayı kaldırır, ardından `scripts/attach-edge.sh` Qrivo Caddy’sini `web-edge` ağına bağlar ve `deploy/caddy-site.caddy` bloklarını o Caddy dosyasının sonuna ekler. `qrivo.online` satırlarını silmez. Kural duruyorsa ikinci kez yazmaz. Reload olmazsa yedeği (`Caddyfile.bak.portfolio`) geri koyar. Caddy bulunamazsa uygulama yine de ayaktadır; DNS oturunca `bash scripts/attach-edge.sh` tekrar çalışır.
-
-`deploy/Caddyfile` yalnız makinede başka kimse 80/443 dinlemiyorsa, `standalone` profili ile kullanılır. Paylaşılan VPS’te bu profil açılmaz.
+Betik Caddy dosyasına `# BEGIN doguhan-erol` ile `# END doguhan-erol` arasını yazar. Bu aralığın dışında kalan satırlar aynı kalmak zorundadır. Reload olmazsa yedek geri konur. Qrivo deposuna commit yok. Qrivo’nun bir sonraki `git pull` işlemi `deploy/Caddyfile` içindeki bu yerel eklemeyi kirli görebilir. Pull onu ezerse bu sitede tekrar `bash scripts/publish-host.sh` çalıştırılır.
 
 Domain ve MinIO adresi `lib/env.ts` üzerinden istek anında okunur. `NEXT_PUBLIC_*` statik yazılırsa imaj derlenirken `localhost` gömülür. Yeni adres için `ROOT_DOMAIN` veya `NEXT_PUBLIC_ROOT_DOMAIN`, medya için `MINIO_PUBLIC_URL` veya `NEXT_PUBLIC_MINIO_PUBLIC_URL`. `NEXTAUTH_URL=https://doguhan-erol.com`. `AUTH_SECRET` en az 32 karakter. Veritabanı ve MinIO şifreleri en az 12. Yönetici şifresi en az 8 ve `change-me` içeremez.
