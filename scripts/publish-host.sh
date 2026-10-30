@@ -105,6 +105,8 @@ block = (
     f"{end}\n"
 )
 
+hosts = {f"www.{domain}", f"files.{domain}", domain}
+
 def strip_block(value: str) -> str:
     start = value.find(begin)
     if start == -1:
@@ -116,12 +118,42 @@ def strip_block(value: str) -> str:
     stop = len(value) if stop == -1 else stop + 1
     return value[:start] + value[stop:]
 
-base = strip_block(text)
+def bare_host(address: str) -> str:
+    address = address.strip().replace("https://", "").replace("http://", "")
+    return address.split("/", 1)[0].split(":", 1)[0]
+
+def remove_our_sites(value: str) -> str:
+    lines = value.splitlines(keepends=True)
+    out = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+        if stripped.endswith("{") and stripped != "{" and not line.startswith((" ", "\t")):
+            addrs = [bare_host(part) for part in stripped[:-1].split(",")]
+            if any(addr in hosts for addr in addrs) and not all(addr in hosts for addr in addrs):
+                raise SystemExit("alan adı Qrivo kuralıyla aynı satırda; dosyaya yazılmadı")
+            if addrs and all(addr in hosts for addr in addrs):
+                depth = line.count("{") - line.count("}")
+                i += 1
+                while i < len(lines) and depth > 0:
+                    depth += lines[i].count("{") - lines[i].count("}")
+                    i += 1
+                continue
+        out.append(line)
+        i += 1
+    return "".join(out)
+
+base = remove_our_sites(strip_block(text))
 if "caddy-ask" not in base:
     raise SystemExit("caddy-ask kayboldu; dosyaya yazılmadı")
 new = base.rstrip() + "\n\n" + block
-if strip_block(new).rstrip() != base.rstrip():
+if remove_our_sites(strip_block(new)).rstrip() != base.rstrip():
     raise SystemExit("mevcut kurallar değişti; dosyaya yazılmadı")
+for host in sorted(hosts):
+    count = len(re.findall(rf"(?m)^{re.escape(host)} \{{$", new))
+    if count != 1:
+        raise SystemExit(f"{host} {count} kez; dosyaya yazılmadı")
 if new == text:
     print("unchanged")
 else:
