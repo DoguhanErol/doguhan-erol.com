@@ -91,15 +91,27 @@ if not re.fullmatch(r"[a-z0-9]([a-z0-9.-]*[a-z0-9])?", domain):
 text = pathlib.Path(path).read_text()
 begin = "# BEGIN doguhan-erol"
 end = "# END doguhan-erol"
+# Qrivo'nun on_demand izni bu isimlere 403 döner. Ayrı ACME ilkesi
+# sertifikayı port 80 üzerinden alır; TLS-ALPN el sıkışması henüz yok.
+acme = (
+    "\ttls {\n"
+    "\t\tissuer acme {\n"
+    "\t\t\tdisable_tlsalpn_challenge\n"
+    "\t\t}\n"
+    "\t}\n"
+)
 block = (
     f"{begin}\n"
     f"www.{domain} {{\n"
+    f"{acme}"
     f"\tredir https://{domain}{{uri}} permanent\n"
     "}\n\n"
     f"files.{domain} {{\n"
+    f"{acme}"
     "\treverse_proxy doguhan-portfolio-minio:9000\n"
     "}\n\n"
     f"{domain} {{\n"
+    f"{acme}"
     "\treverse_proxy doguhan-portfolio-app:3000\n"
     "}\n"
     f"{end}\n"
