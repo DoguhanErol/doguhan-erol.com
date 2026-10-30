@@ -1,0 +1,56 @@
+# Same VPS as Qrivo. Do not publish 80/443 here.
+# Qrivo's Caddy already owns those ports. This file only joins the shared
+# Docker network and gives the app and MinIO stable names.
+services:
+  app:
+    container_name: doguhan-portfolio-app
+    ports: []
+    environment:
+      DEPLOY_ENV: production
+      DATABASE_URL: postgresql://portfolio:${POSTGRES_PASSWORD:-portfolio}@db:5432/portfolio
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      ROOT_DOMAIN: ${NEXT_PUBLIC_ROOT_DOMAIN}
+      NEXT_PUBLIC_ROOT_DOMAIN: ${NEXT_PUBLIC_ROOT_DOMAIN}
+      MINIO_PUBLIC_URL: ${NEXT_PUBLIC_MINIO_PUBLIC_URL}
+      NEXT_PUBLIC_MINIO_PUBLIC_URL: ${NEXT_PUBLIC_MINIO_PUBLIC_URL}
+    networks:
+      - default
+      - web-edge
+
+  db:
+    ports: []
+
+  minio:
+    container_name: doguhan-portfolio-minio
+    networks:
+      - default
+      - web-edge
+
+  # Only for a machine where nothing else listens on 80/443.
+  # scripts/vps.sh does not enable this profile.
+  caddy:
+    profiles: ["standalone"]
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      ROOT_DOMAIN: ${NEXT_PUBLIC_ROOT_DOMAIN}
+      CADDY_EMAIL: ${CADDY_EMAIL:-}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+      - minio
+
+networks:
+  web-edge:
+    external: true
+    name: web-edge
+
+volumes:
+  caddy_data:
+  caddy_config:

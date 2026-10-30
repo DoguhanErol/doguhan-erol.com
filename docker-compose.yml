@@ -1,0 +1,87 @@
+services:
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://portfolio:${POSTGRES_PASSWORD:-portfolio}@db:5432/portfolio
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-in-production}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3010}
+      NEXT_PUBLIC_ROOT_DOMAIN: ${NEXT_PUBLIC_ROOT_DOMAIN:-localhost:3010}
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME:-portfolio}
+      NEXT_PUBLIC_MINIO_PUBLIC_URL: ${NEXT_PUBLIC_MINIO_PUBLIC_URL:-http://localhost:9010/portfolio}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@example.com}
+      SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-doguhan}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-admin123}
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-portfolio}
+      POSTGRES_DB: portfolio
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+  init-db:
+    build:
+      context: .
+      target: tools
+    environment:
+      DATABASE_URL: postgresql://portfolio:${POSTGRES_PASSWORD:-portfolio}@db:5432/portfolio
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@example.com}
+      SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-doguhan}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-admin123}
+    command: sh -c "npx prisma db push && npx tsx prisma/seed.ts"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    profiles: ["init"]
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_started
+    environment:
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME:-portfolio}
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set m http://minio:9000 $$MINIO_ACCESS_KEY $$MINIO_SECRET_KEY; do sleep 2; done;
+      mc mb m/$$MINIO_BUCKET_NAME --ignore-existing;
+      mc anonymous set download m/$$MINIO_BUCKET_NAME;
+      "
+    restart: "no"
+    profiles: ["init"]
+
+volumes:
+  postgres_data:
+  minio_data:

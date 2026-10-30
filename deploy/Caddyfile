@@ -1,0 +1,15 @@
+{
+	email {$CADDY_EMAIL}
+}
+
+www.{$ROOT_DOMAIN} {
+	redir https://{$ROOT_DOMAIN}{uri} permanent
+}
+
+files.{$ROOT_DOMAIN} {
+	reverse_proxy minio:9000
+}
+
+{$ROOT_DOMAIN} {
+	reverse_proxy app:3000
+}

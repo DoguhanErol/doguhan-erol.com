@@ -1,0 +1,57 @@
+{
+  "nav": {
+    "work": "Projeler",
+    "skills": "Hizmetler",
+    "about": "Hakkımda",
+    "contact": "İletişim",
+    "talk": "İletişime geç"
+  },
+  "hero": {
+    "seeWork": "Projeleri incele",
+    "talk": "İletişime geç"
+  },
+  "work": {
+    "kicker": "Projeler",
+    "title": "Geliştirdiğim projeler.",
+    "lead": "Her birini kendim geliştirip yayına alıyorum. Qrivo görüntüsü, çalışan bir menüden alınmış kayıttır. Bağlantılar canlı sayfalara gider."
+  },
+  "skills": {
+    "kicker": "Hizmetler",
+    "title": "Nasıl yardımcı olabilirim."
+  },
+  "about": {
+    "kicker": "Hakkımda",
+    "title": "{name} kim?"
+  },
+  "contact": {
+    "kicker": "İletişim",
+    "title": "Projenizi konuşalım.",
+    "lead": "Web sitesi, dijital menü, oyun ya da mevcut bir işin düzenlenmesi için yazabilirsiniz. Formu kullanın. İsterseniz WhatsApp, Telegram, Instagram veya Substack üzerinden de ulaşabilirsiniz.",
+    "email": "E-posta",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "github": "GitHub",
+    "name": "Ad",
+    "namePlaceholder": "İsteğe bağlı",
+    "emailLabel": "E-posta",
+    "emailPlaceholder": "sen@örnek.com",
+    "message": "Mesaj",
+    "messagePlaceholder": "Ne üzerinde çalışmak istediğinizi kısaca yazın.",
+    "send": "Gönder",
+    "sending": "Gönderiliyor…",
+    "sent": "Mesajınızı aldım. En kısa sürede dönerim.",
+    "error": "Gönderilemedi. E-postayı ve mesajı kontrol edin.",
+    "rate": "Çok sık deneme yapıldı. Biraz sonra yeniden yazın."
+  },
+  "footer": {
+    "top": "Başa dön"
+  },
+  "theme": {
+    "toDark": "Gece görünümü",
+    "toLight": "Gündüz görünümü"
+  },
+  "locale": {
+    "switchToEn": "English",
+    "switchToTr": "Türkçe"
+  }
+}

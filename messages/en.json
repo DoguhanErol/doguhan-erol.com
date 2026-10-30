@@ -1,0 +1,57 @@
+{
+  "nav": {
+    "work": "Work",
+    "skills": "Capabilities",
+    "about": "About",
+    "contact": "Contact",
+    "talk": "Let’s talk"
+  },
+  "hero": {
+    "seeWork": "See the work",
+    "talk": "Let’s talk"
+  },
+  "work": {
+    "kicker": "Work",
+    "title": "Work I keep shipping.",
+    "lead": "I build each of these from start to finish. The Qrivo screen is a real menu recording. The links go to the live pages."
+  },
+  "skills": {
+    "kicker": "Capabilities",
+    "title": "Work we can ship together."
+  },
+  "about": {
+    "kicker": "About",
+    "title": "Who is {name}?"
+  },
+  "contact": {
+    "kicker": "Contact",
+    "title": "Write, and we’ll see.",
+    "lead": "A product, a site, a game, a fix. Use the form, or reach me on WhatsApp, Telegram, Instagram and Substack.",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "github": "GitHub",
+    "name": "Name",
+    "namePlaceholder": "Optional",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "message": "Message",
+    "messagePlaceholder": "What would you like to build?",
+    "send": "Send",
+    "sending": "Sending…",
+    "sent": "Got it. I’ll reply soon.",
+    "error": "Could not send. Check the email and the message.",
+    "rate": "Too many tries. Write again in a little while."
+  },
+  "footer": {
+    "top": "Back to top"
+  },
+  "theme": {
+    "toDark": "Night mode",
+    "toLight": "Day mode"
+  },
+  "locale": {
+    "switchToEn": "English",
+    "switchToTr": "Türkçe"
+  }
+}

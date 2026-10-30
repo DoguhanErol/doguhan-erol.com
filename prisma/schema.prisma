@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Tek yönetici. Oturum JWT olduğu için aynı hesap birden fazla cihazdan açık kalır.
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id               String   @id @default("main")
+  name             String
+  roleTr           String
+  roleEn           String
+  headlineBeforeTr String
+  headlineAccentTr String
+  headlineBeforeEn String
+  headlineAccentEn String
+  leadTr           String   @db.Text
+  leadEn           String   @db.Text
+  aboutTr          String   @db.Text
+  aboutEn          String   @db.Text
+  locationTr       String
+  locationEn       String
+  availabilityTr   String
+  availabilityEn   String
+  stack            String   @db.Text
+  portraitUrl      String?
+  email            String   @default("")
+  whatsapp         String   @default("")
+  telegram         String   @default("")
+  github           String   @default("")
+  updatedAt        DateTime @updatedAt
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  sortOrder Int      @default(0)
+  published Boolean  @default(true)
+  title     String
+  kickerTr  String
+  kickerEn  String
+  summaryTr String   @db.Text
+  summaryEn String   @db.Text
+  pointsTr  String   @db.Text
+  pointsEn  String   @db.Text
+  url       String
+  urlLabel  String
+  url2      String   @default("")
+  urlLabel2 String   @default("")
+  tags      String
+  /// qrivo | scp | generic
+  tone      String   @default("generic")
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model Skill {
+  id        String   @id @default(cuid())
+  sortOrder Int      @default(0)
+  published Boolean  @default(true)
+  titleTr   String
+  titleEn   String
+  bodyTr    String   @db.Text
+  bodyEn    String   @db.Text
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  name      String   @default("")
+  email     String
+  body      String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([read])
+}
